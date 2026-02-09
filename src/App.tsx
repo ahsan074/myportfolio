@@ -1,4 +1,6 @@
 import { lazy, Suspense } from 'react';
+import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import BackToTop from './components/BackToTop';
@@ -40,6 +42,14 @@ export default function App() {
       </Suspense>
       <Footer />
       <BackToTop />
+
+      {/* Vercel Analytics - tracks page views, unique visitors, referrers,
+          top pages, countries, operating systems, and browsers */}
+      <Analytics />
+
+      {/* Vercel Speed Insights - tracks Core Web Vitals (LCP, FID, CLS, FCP, TTFB),
+          real user performance data, and provides route-level breakdowns */}
+      <SpeedInsights />
     </div>
   );
 }

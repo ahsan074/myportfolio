@@ -1,17 +1,62 @@
-import { useState, type FormEvent } from 'react';
+import { useState, type FormEvent, type ChangeEvent } from 'react';
 import { motion } from 'framer-motion';
 import { useScrollAnimation } from '../hooks/useScrollAnimation';
-import { FaEnvelope, FaLinkedin, FaCheckCircle } from 'react-icons/fa';
+import { FaEnvelope, FaLinkedin, FaCheckCircle, FaPaperPlane, FaSpinner } from 'react-icons/fa';
 import SectionHeading from './SectionHeading';
+
+const EMAIL = 'ahsanshakeel13@gmail.com';
+
+interface FormData {
+  name: string;
+  email: string;
+  projectType: string;
+  message: string;
+}
 
 export default function Contact() {
   const { ref, inView } = useScrollAnimation();
   const [submitted, setSubmitted] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [formData, setFormData] = useState<FormData>({
+    name: '',
+    email: '',
+    projectType: '',
+    message: '',
+  });
+
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    setFormData((prev) => ({ ...prev, [e.target.id]: e.target.value }));
+  };
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 4000);
+    setSending(true);
+
+    const projectLabel = formData.projectType
+      ? `[${formData.projectType.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}] `
+      : '';
+
+    const subject = encodeURIComponent(
+      `${projectLabel}Portfolio Contact from ${formData.name}`
+    );
+
+    const body = encodeURIComponent(
+      `Name: ${formData.name}\n` +
+      `Email: ${formData.email}\n` +
+      `Project Type: ${formData.projectType || 'Not specified'}\n\n` +
+      `Message:\n${formData.message}\n`
+    );
+
+    // Open mailto link to send email directly
+    window.location.href = `mailto:${EMAIL}?subject=${subject}&body=${body}`;
+
+    // Show success state after a brief delay
+    setTimeout(() => {
+      setSending(false);
+      setSubmitted(true);
+      setFormData({ name: '', email: '', projectType: '', message: '' });
+      setTimeout(() => setSubmitted(false), 5000);
+    }, 1000);
   };
 
   return (
@@ -39,7 +84,7 @@ export default function Contact() {
                 Let's explore how we can advance the field together.
               </p>
               <a
-                href="mailto:ahsanshakeel13@gmail.com?subject=PhD%20Collaboration%20Inquiry"
+                href={`mailto:${EMAIL}?subject=${encodeURIComponent('PhD Collaboration Inquiry')}`}
                 className="inline-flex items-center gap-2 px-6 py-2.5 border border-purple-500/50 text-purple-400 font-medium rounded-full hover:bg-purple-500/10 hover:border-purple-500 transition-all duration-300"
               >
                 <FaEnvelope size={14} />
@@ -55,7 +100,7 @@ export default function Contact() {
                 Let's discuss your project requirements.
               </p>
               <a
-                href="mailto:ahsanshakeel13@gmail.com?subject=AI%20Project%20Inquiry"
+                href={`mailto:${EMAIL}?subject=${encodeURIComponent('AI Project Inquiry')}`}
                 className="inline-flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-cyan-400 to-cyan-500 text-navy-900 font-medium rounded-full hover:shadow-lg hover:shadow-cyan-400/25 transition-all duration-300"
               >
                 <FaEnvelope size={14} />
@@ -66,11 +111,11 @@ export default function Contact() {
             {/* Quick Contact */}
             <div className="flex flex-col sm:flex-row gap-4">
               <a
-                href="mailto:ahsanshakeel13@gmail.com"
+                href={`mailto:${EMAIL}`}
                 className="flex items-center gap-2 px-5 py-3 glass rounded-xl hover:border-cyan-400/20 transition-all text-slate-300 hover:text-cyan-400"
               >
                 <FaEnvelope />
-                <span className="text-sm">ahsanshakeel13@gmail.com</span>
+                <span className="text-sm">{EMAIL}</span>
               </a>
               <a
                 href="https://linkedin.com/in/ahsanshakeel"
@@ -104,6 +149,8 @@ export default function Contact() {
                   type="text"
                   id="name"
                   required
+                  value={formData.name}
+                  onChange={handleChange}
                   className="w-full px-4 py-3 rounded-xl bg-navy-900/50 border border-white/10 text-white placeholder-slate-500 focus:border-cyan-400/50 focus:outline-none focus:ring-1 focus:ring-cyan-400/50 transition-all"
                   placeholder="Your name"
                 />
@@ -117,6 +164,8 @@ export default function Contact() {
                   type="email"
                   id="email"
                   required
+                  value={formData.email}
+                  onChange={handleChange}
                   className="w-full px-4 py-3 rounded-xl bg-navy-900/50 border border-white/10 text-white placeholder-slate-500 focus:border-cyan-400/50 focus:outline-none focus:ring-1 focus:ring-cyan-400/50 transition-all"
                   placeholder="your@email.com"
                 />
@@ -128,6 +177,8 @@ export default function Contact() {
                 </label>
                 <select
                   id="projectType"
+                  value={formData.projectType}
+                  onChange={handleChange}
                   className="w-full px-4 py-3 rounded-xl bg-navy-900/50 border border-white/10 text-white focus:border-cyan-400/50 focus:outline-none focus:ring-1 focus:ring-cyan-400/50 transition-all"
                 >
                   <option value="">Select a project type</option>
@@ -148,6 +199,8 @@ export default function Contact() {
                   id="message"
                   rows={4}
                   required
+                  value={formData.message}
+                  onChange={handleChange}
                   className="w-full px-4 py-3 rounded-xl bg-navy-900/50 border border-white/10 text-white placeholder-slate-500 focus:border-cyan-400/50 focus:outline-none focus:ring-1 focus:ring-cyan-400/50 transition-all resize-none"
                   placeholder="Tell me about your project or collaboration idea..."
                 />
@@ -155,16 +208,27 @@ export default function Contact() {
 
               <button
                 type="submit"
-                className="w-full py-3 bg-gradient-to-r from-cyan-400 to-purple-500 text-navy-900 font-semibold rounded-xl hover:shadow-lg hover:shadow-cyan-400/25 transition-all duration-300"
+                disabled={sending}
+                className="w-full py-3 bg-gradient-to-r from-cyan-400 to-purple-500 text-navy-900 font-semibold rounded-xl hover:shadow-lg hover:shadow-cyan-400/25 transition-all duration-300 disabled:opacity-70"
               >
                 {submitted ? (
                   <span className="flex items-center justify-center gap-2">
                     <FaCheckCircle /> Message Sent!
                   </span>
+                ) : sending ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <FaSpinner className="animate-spin" /> Opening email client...
+                  </span>
                 ) : (
-                  'Send Message'
+                  <span className="flex items-center justify-center gap-2">
+                    <FaPaperPlane /> Send Message
+                  </span>
                 )}
               </button>
+
+              <p className="text-slate-500 text-xs text-center mt-2">
+                This will open your email client with the message pre-filled and addressed to {EMAIL}
+              </p>
             </form>
           </motion.div>
         </div>
